@@ -21,11 +21,73 @@ export namespace TextMergeJoin {
         readonly str: string;
     }
 
+    interface ISpanCandidate {
+        pageNum: number;
+        y: number;
+        words: Array<IPDFTextWord>
+    }
+
     /**
      *
      */
     export function doMergeWords(data: ReadonlyArray<IPDFTextWord>): ReadonlyArray<IPDFTextWord> {
-        return [];
+        const epsilon = 0.25; 
+
+        const possibleSpans = new Array<ISpanCandidate>(); 
+
+        data.forEach(word => {
+            let existingSpan = possibleSpans.find(it => it.pageNum == word.pageNum && Math.abs(it.y - word.y) < epsilon); 
+            if(existingSpan == null) {
+                existingSpan = {
+                    pageNum: word.pageNum, 
+                    y: word.y, 
+                    words: []
+                }
+                possibleSpans.push(existingSpan)
+            }
+
+            existingSpan.words.push(word);
+        })
+
+        let ret = new Array<IPDFTextWord>()
+
+        possibleSpans.forEach(span => {
+
+            if(span.words.length == 0) {
+                return;
+            }
+
+            span.words.sort((a, b)=> a.x - b.x)
+            const mergedWords = new Array();
+            mergedWords.push({...span.words[0]})
+
+            let wordIdx = 0;
+            let nextIdx = 1; 
+            while(true) {
+                let currWord = mergedWords[wordIdx];
+                let nextWord = span.words[nextIdx]; 
+
+                if(!currWord || !nextWord) {
+                    break; 
+                }
+
+                if(Math.abs(currWord.x + currWord.width - nextWord.x) < epsilon) {
+                    currWord.str = `${currWord.str}${nextWord.str}`
+                    currWord.width = currWord.width + nextWord.width; 
+                    nextIdx++; 
+                } else {
+                    mergedWords.push({...nextWord})
+                    wordIdx++; 
+                    nextIdx++;
+                }
+            }
+
+            ret = [...ret, ...mergedWords]; 
+            
+        })
+
+
+        return ret;
     }
 
 }

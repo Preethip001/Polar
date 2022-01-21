@@ -34,7 +34,7 @@ export namespace DeepCopy {
     export function deepCopy<T extends any>(source: T): T {
 
         // TODO: implement this function from the above function definition.
-        return {} as T;
+        return JSON.parse(JSON.stringify(source)) as T;
     }
 
 }

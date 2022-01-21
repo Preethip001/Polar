@@ -13,21 +13,30 @@
  */
 export class RingBuffer<T> {
 
+    private storage = new Array<T>();
+    private capacity: number; 
+
     constructor(capacity: number) {
+        this.capacity = capacity;
     }
 
     public push(value: T) {
-
+        this.storage.push(value); 
+        if(this.storage.length > this.capacity) {
+            this.storage.shift();
+        }
     }
 
     public peek(): T | undefined {
-        // not implemented
-        return undefined;
+        if(this.storage.length == 0) {
+            return undefined
+        }
+
+        return this.storage[this.storage.length - 1]
     }
 
     public pop(): T | undefined {
-        // not implemented
-        return undefined;
+        return this.storage.pop()
     }
 
 }
